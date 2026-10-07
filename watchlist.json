@@ -1,0 +1,5 @@
+{
+  "_comment": "What the collector records. Update per game day until series auto-discovery lands. Find pairs with 01_explore.py.",
+  "kalshi_tickers": [],
+  "polymarket_tokens": []
+}
