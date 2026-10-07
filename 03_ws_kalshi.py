@@ -33,6 +33,7 @@ Run:
 """
 
 import asyncio
+import base64
 import json
 import os
 import sys
@@ -41,6 +42,9 @@ from datetime import datetime, timezone
 from pathlib import Path
 
 import websockets
+from cryptography.hazmat.primitives import hashes
+from cryptography.hazmat.primitives.asymmetric import ed25519, padding, rsa
+from cryptography.hazmat.primitives.serialization import load_pem_private_key
 from dotenv import load_dotenv
 
 # asyncapi.yaml servers.production: host external-api-ws.kalshi.com, pathname
@@ -99,7 +103,20 @@ def sign_request(private_key_path: str, timestamp_ms: int, method: str, path: st
 
     Docs: https://docs.kalshi.com/getting_started/api_keys
     """
-    raise NotImplementedError("sign_request is a stub — see its docstring for the spec")
+    key_bytes = Path(private_key_path).read_bytes()
+    key = load_pem_private_key(key_bytes, password=None)
+    message = (str(timestamp_ms) + method + path).encode("utf-8")
+    if isinstance(key, ed25519.Ed25519PrivateKey):
+        signature = key.sign(message)
+    elif isinstance(key, rsa.RSAPrivateKey):
+        signature = key.sign(
+            message,
+            padding.PSS(mgf=padding.MGF1(hashes.SHA256()), salt_length=hashes.SHA256().digest_size),
+            hashes.SHA256(),
+        )
+    else:
+        raise TypeError(f"unsupported key type {type(key).__name__} — Kalshi issues Ed25519 or RSA keys")
+    return base64.b64encode(signature).decode()
 
 
 def auth_headers(key_id: str, private_key_path: str) -> dict[str, str]:
