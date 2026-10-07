@@ -10,3 +10,4 @@ pycparser==3.0
 python-dotenv==1.2.4
 typing_extensions==4.16.0
 websockets==17.2
+psycopg[binary]
