@@ -24,6 +24,8 @@ to a cross-venue setting.
 | tempo/ | Phase 1: the always-on collector package (python -m tempo.collector) |
 | schema.sql | Postgres tables the raw JSONL loads into |
 | watchlist.json | which markets the collector records |
+| tempo/snapshot.py | daily one-row-per-market snapshot of the top markets by 24h volume on each venue (python -m tempo.snapshot) |
+| snapshots/ | the daily snapshot CSVs, committed automatically by .github/workflows/daily-snapshot.yml |
 | tests/ | pytest suite for everything testable offline |
 
 ## Setup
@@ -38,6 +40,15 @@ pytest
 Market data on both venues is public; Kalshi's WebSocket additionally needs
 an API key from a verified account (data access only — this project places
 no orders).
+
+## Daily snapshot
+
+A GitHub Actions job runs once a day (20:17 UTC), records the 200 most-traded
+open markets on each venue, and commits snapshots/YYYY/YYYY-MM-DD.csv. Prices
+are dollars per $1 payout. volume_24h is contracts on Kalshi and USD on
+Polymarket, so compare it within a venue, not across. This is the price
+history the calibration question needs: what the market said before each
+event resolved.
 
 ## Status
 
